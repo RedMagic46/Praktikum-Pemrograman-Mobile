@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { formatRupiah } from '../utils/formatCurrency';
-import products from '../data/products';
 
-export default function ProductScreen({ navigation, cart, setCart }) {
+export default function ProductScreen({ navigation, products, cart, setCart }) {
   const [searchText, setSearchText] = useState('');
 
   const filteredProducts = products.filter((product) =>

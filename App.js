@@ -9,6 +9,9 @@ import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import ReceiptScreen from './screens/ReceiptScreen';
 import HistoryScreen from './screens/HistoryScreen';
+import InventoryScreen from './screens/InventoryScreen';
+import AddMenuScreen from './screens/AddMenuScreen';
+import initialProducts from './data/products';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +27,14 @@ const DarkTheme = {
 export default function App() {
   const [cart, setCart] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [products, setProducts] = useState(initialProducts);
+
+  function addProduct(product) {
+    setProducts((currentProducts) => [
+      ...currentProducts,
+      { ...product, id: Math.max(0, ...currentProducts.map((item) => item.id)) + 1 },
+    ]);
+  }
 
   function addTransaction(newTransaction) {
     setTransactions([...transactions, newTransaction]);
@@ -45,7 +56,15 @@ export default function App() {
         </Stack.Screen>
         
         <Stack.Screen name="Produk" options={{ title: 'PRODUK' }}>
-          {(props) => <ProductScreen {...props} cart={cart} setCart={setCart} />}
+          {(props) => <ProductScreen {...props} products={products} cart={cart} setCart={setCart} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="Inventory" options={{ title: 'INVENTORY' }}>
+          {(props) => <InventoryScreen {...props} products={products} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="Tambah Menu" options={{ title: 'TAMBAH MENU' }}>
+          {(props) => <AddMenuScreen {...props} addProduct={addProduct} />}
         </Stack.Screen>
         
         <Stack.Screen name="Keranjang" options={{ title: 'KERANJANG' }}>

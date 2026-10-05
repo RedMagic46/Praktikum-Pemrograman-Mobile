@@ -33,7 +33,7 @@ export default function DashboardScreen({ navigation, transactions }) {
         </TouchableOpacity>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.navigate('Produk')}>
+          <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.navigate('Inventory')}>
             <Text style={styles.buttonSecondaryText}>INVENTORY</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.navigate('Riwayat')}>
