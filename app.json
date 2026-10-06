@@ -2,6 +2,7 @@
   "expo": {
     "name": "KasirKu",
     "slug": "KasirKu",
+    "scheme": "kasirku",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +21,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-router",
+      "expo-font"
     ]
   }
 }
