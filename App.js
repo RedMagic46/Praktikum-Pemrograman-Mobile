@@ -11,6 +11,7 @@ import ReceiptScreen from './screens/ReceiptScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import InventoryScreen from './screens/InventoryScreen';
 import AddMenuScreen from './screens/AddMenuScreen';
+import EditMenuScreen from './screens/EditMenuScreen';
 import initialProducts from './data/products';
 
 const Stack = createStackNavigator();
@@ -34,6 +35,35 @@ export default function App() {
       ...currentProducts,
       { ...product, id: Math.max(0, ...currentProducts.map((item) => item.id)) + 1 },
     ]);
+  }
+
+  function updateProduct(updatedProduct) {
+    setProducts((currentProducts) =>
+      currentProducts.map((item) =>
+        item.id === updatedProduct.id ? updatedProduct : item
+      )
+    );
+    setCart((currentCart) =>
+      currentCart.map((item) =>
+        item.id === updatedProduct.id
+          ? {
+              ...item,
+              name: updatedProduct.name,
+              price: updatedProduct.price,
+              category: updatedProduct.category,
+            }
+          : item
+      )
+    );
+  }
+
+  function deleteProduct(productId) {
+    setProducts((currentProducts) =>
+      currentProducts.filter((item) => item.id !== productId)
+    );
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.id !== productId)
+    );
   }
 
   function addTransaction(newTransaction) {
@@ -65,6 +95,16 @@ export default function App() {
 
         <Stack.Screen name="Tambah Menu" options={{ title: 'TAMBAH MENU' }}>
           {(props) => <AddMenuScreen {...props} addProduct={addProduct} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="Edit Menu" options={{ title: 'EDIT MENU' }}>
+          {(props) => (
+            <EditMenuScreen
+              {...props}
+              updateProduct={updateProduct}
+              deleteProduct={deleteProduct}
+            />
+          )}
         </Stack.Screen>
         
         <Stack.Screen name="Keranjang" options={{ title: 'KERANJANG' }}>

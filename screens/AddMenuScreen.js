@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const categories = ['Makanan', 'Minuman'];
+const categories = ['Makanan', 'Minuman', 'Snack'];
 
 export default function AddMenuScreen({ navigation, addProduct }) {
   const [category, setCategory] = useState(categories[0]);
