@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const defaultCategories = ['Makanan', 'Minuman', 'Snack'];
@@ -15,6 +15,17 @@ export default function EditMenuScreen({ route, navigation, updateProduct, delet
   const [quantity, setQuantity] = useState(product?.stock !== undefined ? product.stock.toString() : '');
   const [price, setPrice] = useState(product?.price !== undefined ? product.price.toString() : '');
   const [error, setError] = useState('');
+
+  // Hook useEffect: Menyinkronkan form input secara reaktif ketika data product dari parameter rute berubah
+  useEffect(() => {
+    if (product) {
+      setName(product.name || '');
+      setCategory(product.category || defaultCategories[0]);
+      setQuantity(product.stock !== undefined ? product.stock.toString() : '');
+      setPrice(product.price !== undefined ? product.price.toString() : '');
+      setError('');
+    }
+  }, [product]);
 
   if (!product) {
     return (

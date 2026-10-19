@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -45,6 +45,14 @@ export default function CartCheckoutScreen() {
   const isPaymentValid: boolean =
     cart.length > 0 &&
     (paymentMethod !== 'TUNAI' || cashPaidAmount >= grandTotal);
+
+  // Hook useEffect: Menyesuaikan input nominal secara otomatis saat metode pembayaran atau grand total berubah
+  useEffect(() => {
+    if (paymentMethod !== 'TUNAI') {
+      // Pembayaran non-tunai (QRIS / DEBIT) selalu otomatis terisi sebesar total tagihan (uang pas)
+      setCashInput(grandTotal > 0 ? grandTotal.toString() : '');
+    }
+  }, [paymentMethod, grandTotal]);
 
   /**
    * Menangani tombol proses checkout & transaksi kasir

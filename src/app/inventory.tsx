@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -43,18 +43,36 @@ export default function InventoryScreen() {
   const totalPhysicalStock: number = products.reduce((sum, p) => sum + p.stock, 0);
   const lowStockCount: number = products.filter((p) => p.stock < 15).length;
 
-  const filteredProducts = filterProducts(products, selectedCategory, searchQuery);
+  // State hasil filter produk inventory
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  // Hook useEffect: Update daftar produk inventory berdasarkan search query & kategori
+  useEffect(() => {
+    setFilteredProducts(filterProducts(products, selectedCategory, searchQuery));
+  }, [products, selectedCategory, searchQuery]);
+
+  // Hook useEffect: Sinkronisasi data form modal secara reaktif saat target editingProduct berubah
+  useEffect(() => {
+    if (editingProduct) {
+      setFormName(editingProduct.name);
+      setFormPrice(editingProduct.price.toString());
+      setFormStock(editingProduct.stock.toString());
+      setFormCategory(editingProduct.category);
+      setFormDescription(editingProduct.description);
+    } else {
+      setFormName('');
+      setFormPrice('');
+      setFormStock('');
+      setFormCategory('Makanan');
+      setFormDescription('');
+    }
+  }, [editingProduct]);
 
   /**
    * Buka form untuk menambah menu baru
    */
   function handleOpenAddModal(): void {
     setEditingProduct(null);
-    setFormName('');
-    setFormPrice('');
-    setFormStock('');
-    setFormCategory('Makanan');
-    setFormDescription('');
     setModalVisible(true);
   }
 
@@ -63,11 +81,6 @@ export default function InventoryScreen() {
    */
   function handleOpenEditModal(product: Product): void {
     setEditingProduct(product);
-    setFormName(product.name);
-    setFormPrice(product.price.toString());
-    setFormStock(product.stock.toString());
-    setFormCategory(product.category);
-    setFormDescription(product.description);
     setModalVisible(true);
   }
 

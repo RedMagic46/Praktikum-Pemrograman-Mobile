@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -28,8 +28,14 @@ export default function CashierCatalogScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('Semua');
 
-  // Filter produk menggunakan custom function filterProducts
-  const filteredProducts: Product[] = filterProducts(products, selectedCategory, searchQuery);
+  // State hasil filter produk
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  // Hook useEffect: Menjalankan side-effect filter produk setiap kali query, kategori, atau data produk berubah
+  useEffect(() => {
+    const results = filterProducts(products, selectedCategory, searchQuery);
+    setFilteredProducts(results);
+  }, [products, selectedCategory, searchQuery]);
 
   // Perhitungan total di keranjang untuk floating bar
   const totalCartItems: number = calculateTotalItems(cart);
