@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
 import { Product, ProductCategory } from '../types/cashier';
@@ -22,6 +23,18 @@ import { COLORS } from '../styles/posStyles';
 
 export default function InventoryScreen() {
   const { products, addProduct, updateProduct, deleteProduct, adjustStock } = useCashier();
+
+  /**
+   * Helper navigasi kembali dengan validasi riwayat stack
+   * Penerapan router.canGoBack() dan router.back()
+   */
+  function handleGoBack(): void {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');

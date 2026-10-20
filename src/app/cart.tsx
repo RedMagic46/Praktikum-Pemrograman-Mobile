@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
 import { CartItem, PaymentMethod } from '../types/cashier';
@@ -27,8 +27,13 @@ import { COLORS } from '../styles/posStyles';
 export default function CartCheckoutScreen() {
   const { cart, updateQuantity, clearCart, completeCheckout } = useCashier();
 
+  // Membaca parameter rute jika ada
+  const params = useLocalSearchParams<{ method?: PaymentMethod }>();
+
   // State metode pembayaran & input nominal tunai
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('TUNAI');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    params.method || 'TUNAI'
+  );
   const [cashInput, setCashInput] = useState<string>('');
 
   // Perhitungan rincian pembayaran
@@ -55,7 +60,38 @@ export default function CartCheckoutScreen() {
   }, [paymentMethod, grandTotal]);
 
   /**
+   * Helper navigasi kembali dengan validasi riwayat stack
+   * Penerapan router.canGoBack() dan router.back()
+   */
+  function handleGoBack(): void {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }
+
+  /**
+   * Menavigasi untuk menambah menu lain
+   * Penerapan router.push()
+   */
+  function handleAddMoreItems(): void {
+    router.push('/');
+  }
+
+  /**
+   * Memilih metode pembayaran dan memperbarui param rute secara dinamis
+   * Penerapan router.setParams()
+   */
+  function handleSelectPaymentMethod(method: PaymentMethod): void {
+    setPaymentMethod(method);
+    router.setParams({ method });
+  }
+
+  /**
    * Menangani tombol proses checkout & transaksi kasir
+   * Penerapan router.replace(): Menggantikan layar keranjang dengan struk transaksi
+   * agar pengguna tidak bisa kembali ke keranjang yang sudah dibayarkan
    */
   function handleProcessCheckout(): void {
     if (cart.length === 0) {
@@ -72,6 +108,7 @@ export default function CartCheckoutScreen() {
     }
 
     // Selesaikan transaksi dan navigasi ke halaman Struk
+    // router.replace() memastikan history checkout diganti dengan receipt
     completeCheckout(paymentMethod, cashPaidAmount);
     router.replace('/receipt');
   }
@@ -167,12 +204,13 @@ export default function CartCheckoutScreen() {
         >
           Belum ada item pesanan yang dipilih. Kembali ke katalog untuk menambahkan menu.
         </Text>
+        {/* Penerapan router.canGoBack() & router.back() pada tombol kembali */}
         <TouchableOpacity
           style={[
             cartStyles.payButton,
             { paddingHorizontal: 28, width: 'auto' },
           ]}
-          onPress={() => router.back()}
+          onPress={handleGoBack}
         >
           <Ionicons name="arrow-back" size={18} color={COLORS.textLight} />
           <Text style={cartStyles.payButtonText}>Kembali ke Katalog</Text>
@@ -188,9 +226,23 @@ export default function CartCheckoutScreen() {
     >
       {/* Header Info Keranjang */}
       <View style={cartStyles.headerSummary}>
-        <Text style={cartStyles.headerSummaryTitle}>
-          Pesanan Pelanggan ({cart.length} Jenis Menu)
-        </Text>
+        <View>
+          <Text style={cartStyles.headerSummaryTitle}>
+            Pesanan Pelanggan ({cart.length} Jenis Menu)
+          </Text>
+          {/* Penerapan router.push() untuk menambah menu dari katalog */}
+          <TouchableOpacity
+            onPress={handleAddMoreItems}
+            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 4 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add-circle-outline" size={15} color={COLORS.primary} />
+            <Text style={{ fontSize: 12, color: COLORS.primary, fontWeight: '700' }}>
+              Tambah Menu (+push)
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity onPress={clearCart}>
           <Text style={cartStyles.clearCartText}>Reset Keranjang</Text>
         </TouchableOpacity>
@@ -223,7 +275,8 @@ export default function CartCheckoutScreen() {
                     // Inline Style dynamic border
                     { borderColor: isSelected ? COLORS.primary : COLORS.border },
                   ]}
-                  onPress={() => setPaymentMethod(method)}
+                  // Penerapan router.setParams() saat memilih metode bayar
+                  onPress={() => handleSelectPaymentMethod(method)}
                 >
                   <Ionicons
                     name={

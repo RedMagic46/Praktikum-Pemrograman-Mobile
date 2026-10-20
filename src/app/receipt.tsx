@@ -52,6 +52,11 @@ export default function ReceiptScreen() {
     );
   }
 
+  /**
+   * Menangani transaksi baru
+   * Penerapan router.replace(): Mengganti rute struk saat ini kembali ke katalog ('/')
+   * dan membersihkan riwayat struk dari stack agar transaksi sebelumnya tidak dapat dibuka kembali
+   */
   function handleNewTransaction(): void {
     resetTransaction();
     router.replace('/');

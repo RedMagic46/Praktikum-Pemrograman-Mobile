@@ -8,7 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
 import { CATEGORIES } from '../data/products';
@@ -24,12 +24,24 @@ import { posStyles, COLORS } from '../styles/posStyles';
 export default function CashierCatalogScreen() {
   const { products, cart, addToCart } = useCashier();
 
+  // Membaca parameter rute jika ada
+  const params = useLocalSearchParams<{ category?: ProductCategory }>();
+
   // State pencarian dan filter kategori
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('Semua');
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory>(
+    (params.category as ProductCategory) || 'Semua'
+  );
 
   // State hasil filter produk
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  // Sinkronisasi jika parameter rute berubah
+  useEffect(() => {
+    if (params.category && params.category !== selectedCategory) {
+      setSelectedCategory(params.category);
+    }
+  }, [params.category]);
 
   // Hook useEffect: Menjalankan side-effect filter produk setiap kali query, kategori, atau data produk berubah
   useEffect(() => {
@@ -37,9 +49,19 @@ export default function CashierCatalogScreen() {
     setFilteredProducts(results);
   }, [products, selectedCategory, searchQuery]);
 
+  /**
+   * Mengubah kategori aktif dan memperbarui parameter rute menggunakan router.setParams()
+   */
+  function handleSelectCategory(categoryName: ProductCategory): void {
+    setSelectedCategory(categoryName);
+    // Penerapan router.setParams(): Memperbarui parameter query URL/rute secara dinamis
+    router.setParams({ category: categoryName });
+  }
+
   // Perhitungan total di keranjang untuk floating bar
   const totalCartItems: number = calculateTotalItems(cart);
   const cartSubtotal: number = calculateSubtotal(cart);
+
 
   /**
    * Custom function untuk me-render setiap kartu produk dalam FlatList
@@ -135,6 +157,7 @@ export default function CashierCatalogScreen() {
                 borderColor: COLORS.border,
                 gap: 5,
               }}
+              // Penerapan router.push(): Menavigasi ke layar '/inventory' dengan menambahkan rute baru ke stack
               onPress={() => router.push('/inventory')}
               activeOpacity={0.7}
             >
@@ -197,7 +220,7 @@ export default function CashierCatalogScreen() {
                     transform: [{ scale: isSelected ? 1.02 : 1 }],
                   },
                 ]}
-                onPress={() => setSelectedCategory(category.name)}
+                onPress={() => handleSelectCategory(category.name)}
                 activeOpacity={0.8}
               >
                 <Ionicons
@@ -260,6 +283,7 @@ export default function CashierCatalogScreen() {
             </View>
           </View>
 
+          {/* Penerapan router.push(): Menavigasi ke layar Keranjang & Pembayaran */}
           <TouchableOpacity
             style={posStyles.floatingCartButton}
             onPress={() => router.push('/cart')}
