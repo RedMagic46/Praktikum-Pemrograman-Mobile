@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  Image,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -120,6 +121,15 @@ export default function CartCheckoutScreen() {
     setCashInput(amount.toString());
   }
 
+  function handleReturnToCatalog(): void {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/');
+  }
+
   /**
    * Custom function me-render item keranjang pada FlatList
    */
@@ -129,11 +139,20 @@ export default function CartCheckoutScreen() {
     return (
       <View style={cartStyles.cartItemCard}>
         <View style={cartStyles.itemIconWrapper}>
-          <Ionicons
-            name={item.product.iconName as any}
-            size={24}
-            color={COLORS.primary}
-          />
+          {item.product.external ? (
+            <Image
+              source={{ uri: item.product.external.image }}
+              style={{ width: 36, height: 36 }}
+              resizeMode="contain"
+              accessibilityLabel={item.product.name}
+            />
+          ) : (
+            <Ionicons
+              name={item.product.iconName as any}
+              size={24}
+              color={COLORS.primary}
+            />
+          )}
         </View>
 
         <View style={cartStyles.itemInfo}>

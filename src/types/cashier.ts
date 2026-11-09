@@ -12,6 +12,14 @@ export interface Product {
   stock: number;
   description: string;
   iconName: string; // Nama icon dari Ionicons untuk representasi visual
+  external?: {
+    category: string;
+    image: string;
+    rating: {
+      rate: number;
+      count: number;
+    };
+  };
 }
 
 export interface CartItem {

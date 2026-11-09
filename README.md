@@ -87,6 +87,10 @@ fix: fix cart quantity calculation
 5. **Struk** → lihat ringkasan transaksi, tekan Selesai
 6. **Riwayat** → lihat semua transaksi yang sudah dilakukan
 
+## Integrasi Fake Store API
+
+Katalog menu mengambil daftar produk melalui `GET https://fakestoreapi.com/products` dan menampilkannya bersama menu lokal, termasuk gambar, kategori, harga, dan rating. Produk API dapat dicari dan dimasukkan ke keranjang. Harga USD dikonversi ke Rupiah dengan kurs demo tetap 1 USD = Rp16.000 agar dapat diproses oleh checkout Rupiah. Kurs ini hanya untuk demonstrasi, bukan kurs aktual.
+
 ---
 
 ## Dependensi

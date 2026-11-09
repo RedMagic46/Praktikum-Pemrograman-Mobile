@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   TextInput,
@@ -7,10 +8,17 @@ import {
   FlatList,
   ScrollView,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
+import {
+  convertFakeStorePriceToIdr,
+  FAKE_STORE_USD_TO_IDR,
+  FakeStoreProduct,
+  fetchFakeStoreProducts,
+} from '../data/fakeStoreApi';
 import { CATEGORIES } from '../data/products';
 import { Product, ProductCategory } from '../types/cashier';
 import {
@@ -23,6 +31,10 @@ import { posStyles, COLORS } from '../styles/posStyles';
 
 export default function CashierCatalogScreen() {
   const { products, cart, addToCart } = useCashier();
+  const [apiProducts, setApiProducts] = useState<FakeStoreProduct[]>([]);
+  const [apiLoading, setApiLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiRequestVersion, setApiRequestVersion] = useState(0);
 
   // Membaca parameter rute jika ada
   const params = useLocalSearchParams<{ category?: ProductCategory }>();
@@ -33,21 +45,81 @@ export default function CashierCatalogScreen() {
     (params.category as ProductCategory) || 'Semua'
   );
 
-  // State hasil filter produk
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
-
   // Sinkronisasi jika parameter rute berubah
   useEffect(() => {
     if (params.category && params.category !== selectedCategory) {
       setSelectedCategory(params.category);
     }
-  }, [params.category]);
+  }, [params.category, selectedCategory]);
 
-  // Hook useEffect: Menjalankan side-effect filter produk setiap kali query, kategori, atau data produk berubah
   useEffect(() => {
-    const results = filterProducts(products, selectedCategory, searchQuery);
-    setFilteredProducts(results);
-  }, [products, selectedCategory, searchQuery]);
+    let active = true;
+
+    async function loadApiProducts() {
+      try {
+        const fetchedProducts = await fetchFakeStoreProducts();
+        if (active) {
+          setApiProducts(fetchedProducts);
+          setApiError(null);
+        }
+      } catch (requestError) {
+        if (active) {
+          setApiError(
+            requestError instanceof Error
+              ? requestError.message
+              : 'Terjadi kesalahan yang tidak diketahui.'
+          );
+        }
+      } finally {
+        if (active) {
+          setApiLoading(false);
+        }
+      }
+    }
+
+    void loadApiProducts();
+    return () => {
+      active = false;
+    };
+  }, [apiRequestVersion]);
+
+  function reloadApiProducts(): void {
+    setApiLoading(true);
+    setApiError(null);
+    setApiRequestVersion((version) => version + 1);
+  }
+
+  const filteredProducts = useMemo((): Product[] => {
+    const localProducts = filterProducts(products, selectedCategory, searchQuery);
+    if (selectedCategory !== 'Semua') {
+      return localProducts;
+    }
+
+    const query = searchQuery.trim().toLowerCase();
+    const externalProducts: Product[] = apiProducts
+      .filter(
+        (product) =>
+          product.title.toLowerCase().includes(query) ||
+          product.description.toLowerCase().includes(query) ||
+          product.category.toLowerCase().includes(query)
+      )
+      .map((product) => ({
+        id: -product.id,
+        name: product.title.trim(),
+        price: convertFakeStorePriceToIdr(product.price),
+        category: 'Semua',
+        stock: Number.MAX_SAFE_INTEGER,
+        description: product.description,
+        iconName: 'pricetag-outline',
+        external: {
+          category: product.category,
+          image: product.image,
+          rating: product.rating,
+        },
+      }));
+
+    return [...localProducts, ...externalProducts];
+  }, [products, apiProducts, selectedCategory, searchQuery]);
 
   /**
    * Mengubah kategori aktif dan memperbarui parameter rute menggunakan router.setParams()
@@ -69,50 +141,75 @@ export default function CashierCatalogScreen() {
    */
   function renderProductItem({ item }: { item: Product }) {
     // Mengecek apakah stok menipis (dibawah atau sama dengan 12)
-    const isLowStock = item.stock <= 12;
+    const isApiProduct = Boolean(item.external);
+    const isLowStock = !isApiProduct && item.stock <= 12;
 
     return (
       <View style={posStyles.productCard}>
         {/* Box Icon Produk */}
         <View style={posStyles.productIconBox}>
-          <Ionicons
-            name={item.iconName as any}
-            size={30}
-            color={COLORS.primary}
-          />
+          {item.external ? (
+            <Image
+              source={{ uri: item.external.image }}
+              style={{ width: 48, height: 48 }}
+              resizeMode="contain"
+              accessibilityLabel={item.name}
+            />
+          ) : (
+            <Ionicons name={item.iconName as any} size={30} color={COLORS.primary} />
+          )}
         </View>
 
         {/* Informasi Detail Produk */}
         <View style={posStyles.productDetails}>
-          <Text style={posStyles.productCategoryTag}>[{item.category}]</Text>
+          <Text style={posStyles.productCategoryTag}>
+            [{item.external ? `Fake Store · ${item.external.category}` : item.category}]
+          </Text>
           <Text style={posStyles.productName}>{item.name}</Text>
           <Text style={posStyles.productDescription} numberOfLines={2}>
             {item.description}
           </Text>
 
           <View style={posStyles.productBottomRow}>
-            <Text style={posStyles.productPrice}>{formatCurrency(item.price)}</Text>
+            <Text style={posStyles.productPrice}>
+              {formatCurrency(item.price)}
+            </Text>
 
             {/* Penerapan Inline Styles dinamis berdasarkan status stok */}
-            <View
-              style={[
-                posStyles.stockBadge,
-                {
-                  backgroundColor: isLowStock ? '#FEE2E2' : '#ECFDF5',
-                  borderColor: isLowStock ? '#FCA5A5' : '#A7F3D0',
-                  borderWidth: 1,
-                },
-              ]}
-            >
-              <Text
+            {isApiProduct ? (
+              <View style={{ alignItems: 'flex-end' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                  <Ionicons name="star" size={13} color={COLORS.accent} />
+                  <Text style={posStyles.stockText}>
+                    {item.external?.rating.rate.toFixed(1)} (
+                    {item.external?.rating.count})
+                  </Text>
+                </View>
+                <Text style={{ color: COLORS.textMuted, fontSize: 10, marginTop: 3 }}>
+                  Kurs demo 1 USD = {formatCurrency(FAKE_STORE_USD_TO_IDR)}
+                </Text>
+              </View>
+            ) : (
+              <View
                 style={[
-                  posStyles.stockText,
-                  { color: isLowStock ? '#DC2626' : '#059669' },
+                  posStyles.stockBadge,
+                  {
+                    backgroundColor: isLowStock ? '#FEE2E2' : '#ECFDF5',
+                    borderColor: isLowStock ? '#FCA5A5' : '#A7F3D0',
+                    borderWidth: 1,
+                  },
                 ]}
               >
-                {isLowStock ? `Sisa: ${item.stock}` : `Stok: ${item.stock}`}
-              </Text>
-            </View>
+                <Text
+                  style={[
+                    posStyles.stockText,
+                    { color: isLowStock ? '#DC2626' : '#059669' },
+                  ]}
+                >
+                  {isLowStock ? `Sisa: ${item.stock}` : `Stok: ${item.stock}`}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -121,6 +218,8 @@ export default function CashierCatalogScreen() {
           style={posStyles.addButton}
           activeOpacity={0.7}
           onPress={() => addToCart(item)}
+          accessibilityRole="button"
+          accessibilityLabel={`Tambah ${item.name} ke keranjang`}
         >
           <Ionicons name="add" size={24} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -184,7 +283,7 @@ export default function CashierCatalogScreen() {
           />
           <TextInput
             style={posStyles.searchInput}
-            placeholder="Cari menu makanan, minuman, snack..."
+            placeholder="Cari menu atau produk Fake Store..."
             placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -198,6 +297,7 @@ export default function CashierCatalogScreen() {
             </TouchableOpacity>
           )}
         </View>
+
       </View>
 
       {/* Filter Kategori Menu Menggunakan .map() Loop */}
@@ -244,11 +344,53 @@ export default function CashierCatalogScreen() {
 
       {/* Header Katalog Info */}
       <View style={posStyles.catalogHeader}>
-        <Text style={posStyles.catalogTitle}>Daftar Menu</Text>
-        <Text style={posStyles.catalogCount}>
-          {filteredProducts.length} Item Ditampilkan
-        </Text>
+        <View>
+          <Text style={posStyles.catalogTitle}>Daftar Menu</Text>
+          <Text style={posStyles.catalogCount}>
+            {filteredProducts.length} Item Ditampilkan
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={reloadApiProducts}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Muat ulang produk API"
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 5, padding: 6 }}
+        >
+          {apiLoading ? (
+            <ActivityIndicator size="small" color={COLORS.secondary} />
+          ) : (
+            <Ionicons
+              name={apiError ? 'alert-circle-outline' : 'refresh'}
+              size={17}
+              color={apiError ? COLORS.danger : COLORS.secondary}
+            />
+          )}
+          <Text style={{ color: COLORS.secondary, fontSize: 11, fontWeight: '700' }}>
+            API {apiProducts.length > 0 ? `· ${apiProducts.length}` : ''}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {apiError && (
+        <TouchableOpacity
+          onPress={reloadApiProducts}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginHorizontal: 16,
+            marginBottom: 8,
+            padding: 10,
+            borderRadius: 10,
+            backgroundColor: COLORS.dangerLight,
+          }}
+        >
+          <Ionicons name="warning-outline" size={16} color={COLORS.danger} />
+          <Text style={{ flex: 1, marginLeft: 7, color: COLORS.danger, fontSize: 12 }}>
+            Gagal memuat produk API: {apiError} Ketuk untuk mencoba lagi.
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* FlatList Produk Kasir */}
       <FlatList
