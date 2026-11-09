@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   TouchableOpacity,
@@ -24,6 +25,7 @@ import {
 } from '../utils/cashierUtils';
 import { cartStyles } from '../styles/cartStyles';
 import { COLORS } from '../styles/posStyles';
+import { processPaymentTransaction } from '../services/paymentService';
 
 export default function CartCheckoutScreen() {
   const { cart, updateQuantity, clearCart, completeCheckout } = useCashier();
@@ -36,6 +38,9 @@ export default function CartCheckoutScreen() {
     params.method || 'TUNAI'
   );
   const [cashInput, setCashInput] = useState<string>('');
+
+  // State untuk melacak proses asynchronous transaksi kasir (Kriteria 2 Modul 3)
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // Perhitungan rincian pembayaran
   const subtotal: number = calculateSubtotal(cart);
@@ -90,11 +95,15 @@ export default function CartCheckoutScreen() {
   }
 
   /**
-   * Menangani tombol proses checkout & transaksi kasir
-   * Penerapan router.replace(): Menggantikan layar keranjang dengan struk transaksi
-   * agar pengguna tidak bisa kembali ke keranjang yang sudah dibayarkan
+   * ============================================================================
+   * IMPLEMENTASI MODUL 3 (KRITERIA 2): MEMANGGIL CUSTOM ASYNC FUNCTION
+   * ============================================================================
+   * Menangani proses checkout kasir menggunakan `async` dan `await`.
+   * Memanggil Custom Async Function `processPaymentTransaction()` yang mengembalikan
+   * Promise dengan simulasi verifikasi payment gateway / core banking.
+   * ============================================================================
    */
-  function handleProcessCheckout(): void {
+  async function handleProcessCheckout(): Promise<void> {
     if (cart.length === 0) {
       Alert.alert('Keranjang Kosong', 'Silakan pilih menu terlebih dahulu sebelum bayar.');
       return;
@@ -108,10 +117,27 @@ export default function CartCheckoutScreen() {
       return;
     }
 
-    // Selesaikan transaksi dan navigasi ke halaman Struk
-    // router.replace() memastikan history checkout diganti dengan receipt
-    completeCheckout(paymentMethod, cashPaidAmount);
-    router.replace('/receipt');
+    try {
+      // 1. Mengaktifkan status loading asynchronous
+      setIsProcessing(true);
+
+      // 2. Memanggil Custom Async Function buatan sendiri (menggunakan await)
+      await processPaymentTransaction(paymentMethod, cashPaidAmount, grandTotal);
+
+      // 3. Setelah Promise selesai di-resolve, lanjutkan mutasi data transaksi kasir
+      completeCheckout(paymentMethod, cashPaidAmount);
+
+      // 4. Navigasi ke halaman struk (router.replace)
+      router.replace('/receipt');
+    } catch (error) {
+      // 5. Penanganan error jika Promise mengalami reject
+      const message =
+        error instanceof Error ? error.message : 'Terjadi kegagalan saat otorisasi pembayaran.';
+      Alert.alert('Transaksi Ditolak', message);
+    } finally {
+      // 6. Menonaktifkan status loading setelah operasi asynchronous tuntas
+      setIsProcessing(false);
+    }
   }
 
   /**
@@ -402,21 +428,32 @@ export default function CartCheckoutScreen() {
             </View>
           )}
 
-          {/* Tombol Selesaikan Pembayaran */}
+          {/* Tombol Selesaikan Pembayaran dengan Asynchronous Feedback (Modul 3) */}
           <TouchableOpacity
             style={[
               cartStyles.payButton,
-              !isPaymentValid && cartStyles.payButtonDisabled,
-              { opacity: isPaymentValid ? 1 : 0.6 },
+              (!isPaymentValid || isProcessing) && cartStyles.payButtonDisabled,
+              { opacity: isPaymentValid && !isProcessing ? 1 : 0.6 },
             ]}
-            disabled={!isPaymentValid}
+            disabled={!isPaymentValid || isProcessing}
             onPress={handleProcessCheckout}
             activeOpacity={0.8}
           >
-            <Ionicons name="checkmark-circle" size={20} color={COLORS.textLight} />
-            <Text style={cartStyles.payButtonText}>
-              Selesaikan Pembayaran ({formatCurrency(grandTotal)})
-            </Text>
+            {isProcessing ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ActivityIndicator size="small" color={COLORS.textLight} />
+                <Text style={cartStyles.payButtonText}>
+                  Memproses Otorisasi Pembayaran...
+                </Text>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="checkmark-circle" size={20} color={COLORS.textLight} />
+                <Text style={cartStyles.payButtonText}>
+                  Selesaikan Pembayaran ({formatCurrency(grandTotal)})
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

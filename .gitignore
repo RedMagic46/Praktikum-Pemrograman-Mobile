@@ -41,3 +41,5 @@ yarn-error.*
 /android
 
 dd3bb6c57bb0dbeeca57d47d24eb291210905module (1).zip
+*.pdf
+src/app/cartbayar.tsx

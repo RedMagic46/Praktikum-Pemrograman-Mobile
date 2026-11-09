@@ -52,6 +52,17 @@ export default function CashierCatalogScreen() {
     }
   }, [params.category, selectedCategory]);
 
+  /**
+   * ============================================================================
+   * IMPLEMENTASI MODUL 3 (KRITERIA 2): PRE-BUILT ASYNC FUNCTION (FETCH & JSON)
+   * ============================================================================
+   * Memanggil fungsi asynchronous `fetchFakeStoreProducts()` yang di dalamnya
+   * mengeksekusi Pre-built Async Function:
+   * 1. `fetch()`: Mengambil data eksternal dari API endpoint.
+   * 2. `response.json()`: Melakukan parsing stream data response menjadi JSON.
+   * Dilengkapi penanganan async loading (`setApiLoading`) dan error (`setApiError`).
+   * ============================================================================
+   */
   useEffect(() => {
     let active = true;
 
