@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Product, CartItem, Transaction, PaymentMethod, TransactionItem } from '../types/cashier';
 import { INITIAL_PRODUCTS } from '../data/products';
+import { FakeStoreProduct, convertFakeStorePriceToIdr } from '../data/fakeStoreApi';
 import {
   calculateSubtotal,
   calculateTax,
@@ -25,6 +27,7 @@ interface CashierContextType {
   updateProduct: (updatedProduct: Product) => void;
   deleteProduct: (productId: number) => void;
   adjustStock: (productId: number, delta: number) => void;
+  syncApiProducts: (apiProducts: FakeStoreProduct[]) => void;
 }
 
 const CashierContext = createContext<CashierContextType | undefined>(undefined);
@@ -228,6 +231,40 @@ export function CashierProvider({ children }: CashierProviderProps) {
     );
   }
 
+  /**
+   * Menyinkronkan data produk dari Fake Store API ke dalam state global products
+   * agar tampil baik di Katalog Kasir maupun di halaman Inventory
+   */
+  const syncApiProducts = useCallback((apiProducts: FakeStoreProduct[]): void => {
+    setProducts((currentProducts) => {
+      const mappedApiProducts: Product[] = apiProducts.map((apiItem) => {
+        const productId = -apiItem.id;
+        const existing = currentProducts.find((p) => p.id === productId);
+        if (existing) {
+          return existing;
+        }
+
+        return {
+          id: productId,
+          name: apiItem.title.trim(),
+          price: convertFakeStorePriceToIdr(apiItem.price),
+          category: 'Semua',
+          stock: Math.max(5, Math.min(99, Math.round(apiItem.rating.count / 5))),
+          description: apiItem.description,
+          iconName: 'pricetag-outline',
+          external: {
+            category: apiItem.category,
+            image: apiItem.image,
+            rating: apiItem.rating,
+          },
+        };
+      });
+
+      const localOnly = currentProducts.filter((p) => !p.external);
+      return [...localOnly, ...mappedApiProducts];
+    });
+  }, []);
+
   return (
     <CashierContext.Provider
       value={{
@@ -244,6 +281,7 @@ export function CashierProvider({ children }: CashierProviderProps) {
         updateProduct,
         deleteProduct,
         adjustStock,
+        syncApiProducts,
       }}
     >
       {children}

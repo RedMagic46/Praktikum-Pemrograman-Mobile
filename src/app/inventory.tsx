@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,11 +19,14 @@ import { useCashier } from '../context/CashierContext';
 import { Product, ProductCategory } from '../types/cashier';
 import { formatCurrency, filterProducts } from '../utils/cashierUtils';
 import { CATEGORIES } from '../data/products';
+import { fetchFakeStoreProducts } from '../data/fakeStoreApi';
 import { inventoryStyles } from '../styles/inventoryStyles';
 import { COLORS } from '../styles/posStyles';
 
 export default function InventoryScreen() {
   const { products, addProduct, updateProduct, deleteProduct, adjustStock } = useCashier();
+  const { products, addProduct, updateProduct, deleteProduct, adjustStock, syncApiProducts } =
+    useCashier();
 
   /**
    * Helper navigasi kembali dengan validasi riwayat stack
@@ -58,6 +62,20 @@ export default function InventoryScreen() {
 
   // State hasil filter produk inventory
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  // Hook useEffect: Pastikan data dari Fake Store API juga ter-load jika halaman Inventory dibuka langsung
+  useEffect(() => {
+    const hasExternalProducts = products.some((p) => Boolean(p.external));
+    if (!hasExternalProducts) {
+      fetchFakeStoreProducts()
+        .then((fetchedProducts) => {
+          syncApiProducts(fetchedProducts);
+        })
+        .catch(() => {
+          // Tetap tampilkan produk lokal jika gagal memuat API
+        });
+    }
+  }, [products, syncApiProducts]);
 
   // Hook useEffect: Update daftar produk inventory berdasarkan search query & kategori
   useEffect(() => {
@@ -181,10 +199,27 @@ export default function InventoryScreen() {
               size={24}
               color={COLORS.primary}
             />
+            {item.external ? (
+              <Image
+                source={{ uri: item.external.image }}
+                style={{ width: 32, height: 32 }}
+                resizeMode="contain"
+                accessibilityLabel={item.name}
+              />
+            ) : (
+              <Ionicons
+                name={item.iconName as any}
+                size={24}
+                color={COLORS.primary}
+              />
+            )}
           </View>
 
           <View style={inventoryStyles.cardMainInfo}>
             <Text style={inventoryStyles.cardCategory}>[{item.category}]</Text>
+            <Text style={inventoryStyles.cardCategory}>
+              [{item.external ? `Fake Store · ${item.external.category}` : item.category}]
+            </Text>
             <Text style={inventoryStyles.cardTitle}>{item.name}</Text>
             <Text style={inventoryStyles.cardPrice}>
               {formatCurrency(item.price)}

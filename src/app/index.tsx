@@ -14,7 +14,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
 import {
-  convertFakeStorePriceToIdr,
   FAKE_STORE_USD_TO_IDR,
   FakeStoreProduct,
   fetchFakeStoreProducts,
@@ -30,7 +29,7 @@ import {
 import { posStyles, COLORS } from '../styles/posStyles';
 
 export default function CashierCatalogScreen() {
-  const { products, cart, addToCart } = useCashier();
+  const { products, cart, addToCart, syncApiProducts } = useCashier();
   const [apiProducts, setApiProducts] = useState<FakeStoreProduct[]>([]);
   const [apiLoading, setApiLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -71,6 +70,7 @@ export default function CashierCatalogScreen() {
         const fetchedProducts = await fetchFakeStoreProducts();
         if (active) {
           setApiProducts(fetchedProducts);
+          syncApiProducts(fetchedProducts);
           setApiError(null);
         }
       } catch (requestError) {
@@ -92,7 +92,7 @@ export default function CashierCatalogScreen() {
     return () => {
       active = false;
     };
-  }, [apiRequestVersion]);
+  }, [apiRequestVersion, syncApiProducts]);
 
   function reloadApiProducts(): void {
     setApiLoading(true);
@@ -101,36 +101,8 @@ export default function CashierCatalogScreen() {
   }
 
   const filteredProducts = useMemo((): Product[] => {
-    const localProducts = filterProducts(products, selectedCategory, searchQuery);
-    if (selectedCategory !== 'Semua') {
-      return localProducts;
-    }
-
-    const query = searchQuery.trim().toLowerCase();
-    const externalProducts: Product[] = apiProducts
-      .filter(
-        (product) =>
-          product.title.toLowerCase().includes(query) ||
-          product.description.toLowerCase().includes(query) ||
-          product.category.toLowerCase().includes(query)
-      )
-      .map((product) => ({
-        id: -product.id,
-        name: product.title.trim(),
-        price: convertFakeStorePriceToIdr(product.price),
-        category: 'Semua',
-        stock: Number.MAX_SAFE_INTEGER,
-        description: product.description,
-        iconName: 'pricetag-outline',
-        external: {
-          category: product.category,
-          image: product.image,
-          rating: product.rating,
-        },
-      }));
-
-    return [...localProducts, ...externalProducts];
-  }, [products, apiProducts, selectedCategory, searchQuery]);
+    return filterProducts(products, selectedCategory, searchQuery);
+  }, [products, selectedCategory, searchQuery]);
 
   /**
    * Mengubah kategori aktif dan memperbarui parameter rute menggunakan router.setParams()
@@ -193,7 +165,7 @@ export default function CashierCatalogScreen() {
                   <Ionicons name="star" size={13} color={COLORS.accent} />
                   <Text style={posStyles.stockText}>
                     {item.external?.rating.rate.toFixed(1)} (
-                    {item.external?.rating.count})
+                    {item.external?.rating.count}) · Stok: {item.stock}
                   </Text>
                 </View>
                 <Text style={{ color: COLORS.textMuted, fontSize: 10, marginTop: 3 }}>

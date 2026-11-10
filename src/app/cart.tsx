@@ -53,9 +53,7 @@ export default function CartCheckoutScreen() {
       : grandTotal;
 
   const changeAmount: number = calculateChange(cashPaidAmount, grandTotal);
-  const isPaymentValid: boolean =
-    cart.length > 0 &&
-    (paymentMethod !== 'TUNAI' || cashPaidAmount >= grandTotal);
+  const isPaymentValid: boolean = cart.length > 0;
 
   // Hook useEffect: Menyesuaikan input nominal secara otomatis saat metode pembayaran atau grand total berubah
   useEffect(() => {
@@ -96,48 +94,43 @@ export default function CartCheckoutScreen() {
 
   /**
    * ============================================================================
-   * IMPLEMENTASI MODUL 3 (KRITERIA 2): MEMANGGIL CUSTOM ASYNC FUNCTION
+   * IMPLEMENTASI MODUL 3 (KRITERIA 2): MEMANGGIL PROMISE DENGAN .then(), .catch(), .finally()
    * ============================================================================
-   * Menangani proses checkout kasir menggunakan `async` dan `await`.
-   * Memanggil Custom Async Function `processPaymentTransaction()` yang mengembalikan
-   * Promise dengan simulasi verifikasi payment gateway / core banking.
+   * Menangani proses checkout kasir menggunakan metode chaining Promise:
+   * - `.then()`: Menangkap hasil `resolve(result)` saat pembayaran valid & berhasil.
+   * - `.catch()`: Menangkap alasan `reject(error)` saat validasi pembayaran gagal (misal uang kurang).
+   * - `.finally()`: Menonaktifkan indikator loading setelah proses asynchronous selesai.
    * ============================================================================
    */
-  async function handleProcessCheckout(): Promise<void> {
+  function handleProcessCheckout(): void {
     if (cart.length === 0) {
       Alert.alert('Keranjang Kosong', 'Silakan pilih menu terlebih dahulu sebelum bayar.');
       return;
     }
 
-    if (paymentMethod === 'TUNAI' && cashPaidAmount < grandTotal) {
-      Alert.alert(
-        'Uang Tidak Cukup',
-        `Uang yang dibayarkan kurang dari total belanja (${formatCurrency(grandTotal)}).`
-      );
-      return;
-    }
+    // 1. Mengaktifkan status loading asynchronous
+    setIsProcessing(true);
 
-    try {
-      // 1. Mengaktifkan status loading asynchronous
-      setIsProcessing(true);
-
-      // 2. Memanggil Custom Async Function buatan sendiri (menggunakan await)
-      await processPaymentTransaction(paymentMethod, cashPaidAmount, grandTotal);
-
-      // 3. Setelah Promise selesai di-resolve, lanjutkan mutasi data transaksi kasir
-      completeCheckout(paymentMethod, cashPaidAmount);
-
-      // 4. Navigasi ke halaman struk (router.replace)
-      router.replace('/receipt');
-    } catch (error) {
-      // 5. Penanganan error jika Promise mengalami reject
-      const message =
-        error instanceof Error ? error.message : 'Terjadi kegagalan saat otorisasi pembayaran.';
-      Alert.alert('Transaksi Ditolak', message);
-    } finally {
-      // 6. Menonaktifkan status loading setelah operasi asynchronous tuntas
-      setIsProcessing(false);
-    }
+    // 2. Memanggil fungsi Promise processPaymentTransaction() menggunakan .then(), .catch(), dan .finally()
+    processPaymentTransaction(paymentMethod, cashPaidAmount, grandTotal)
+      .then((result) => {
+        // 3. Callback .then() dijalankan ketika Promise berhasil di-resolve()
+        completeCheckout(paymentMethod, cashPaidAmount);
+        Alert.alert('Pembayaran Berhasil', result.message);
+        router.replace('/receipt');
+      })
+      .catch((error: unknown) => {
+        // 4. Callback .catch() dijalankan ketika Promise ditolak melalui reject()
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Terjadi kegagalan saat otorisasi pembayaran.';
+        Alert.alert('Transaksi Ditolak', message);
+      })
+      .finally(() => {
+        // 5. Callback .finally() selalu dijalankan setelah resolve() maupun reject() selesai
+        setIsProcessing(false);
+      });
   }
 
   /**
