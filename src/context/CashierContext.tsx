@@ -21,7 +21,6 @@ interface CashierContextType {
   clearCart: () => void;
   completeCheckout: (paymentMethod: PaymentMethod, cashPaid: number) => Transaction;
   resetTransaction: () => void;
-  // Fungsi Manajemen Inventory
   addProduct: (newProduct: Omit<Product, 'id'>) => void;
   updateProduct: (updatedProduct: Product) => void;
   deleteProduct: (productId: number) => void;
@@ -40,9 +39,6 @@ export function CashierProvider({ children }: CashierProviderProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
 
-  /**
-   * Custom function untuk menambah produk ke keranjang belanja
-   */
   function addToCart(product: Product): void {
     if (product.stock <= 0) {
       return;
@@ -52,7 +48,6 @@ export function CashierProvider({ children }: CashierProviderProps) {
       const existingIndex = prevCart.findIndex((item) => item.product.id === product.id);
 
       if (existingIndex > -1) {
-        // Cek apakah quantity melebihi stok yang ada
         if (prevCart[existingIndex].quantity >= product.stock) {
           return prevCart;
         }
@@ -69,23 +64,16 @@ export function CashierProvider({ children }: CashierProviderProps) {
     });
   }
 
-  /**
-   * Custom function untuk menghapus produk dari keranjang
-   */
   function removeFromCart(productId: number): void {
     setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
   }
 
-  /**
-   * Custom function untuk mengubah quantity item (+1 atau -1)
-   */
   function updateQuantity(productId: number, delta: number): void {
     setCart((prevCart) => {
       return prevCart
         .map((item) => {
           if (item.product.id === productId) {
             const newQty = item.quantity + delta;
-            // Cegah menambah kuantitas melebihi batas stok produk
             if (delta > 0 && newQty > item.product.stock) {
               return item;
             }
@@ -97,23 +85,16 @@ export function CashierProvider({ children }: CashierProviderProps) {
     });
   }
 
-  /**
-   * Mengosongkan keranjang belanja
-   */
   function clearCart(): void {
     setCart([]);
   }
 
-  /**
-   * Menyelesaikan transaksi pembayaran kasir, memotong stok, dan mencatat struk
-   */
   function completeCheckout(paymentMethod: PaymentMethod, cashPaid: number): Transaction {
     const subtotal = calculateSubtotal(cart);
     const tax = calculateTax(subtotal);
     const grandTotal = calculateGrandTotal(subtotal, tax);
     const change = calculateChange(cashPaid, grandTotal);
 
-    // Potong stok produk di katalog secara otomatis sesuai jumlah yang terjual
     setProducts((currentProducts) =>
       currentProducts.map((p) => {
         const cartMatch = cart.find((c) => c.product.id === p.id);
@@ -125,7 +106,6 @@ export function CashierProvider({ children }: CashierProviderProps) {
       })
     );
 
-    // Konversi keranjang menjadi item transaksi
     const transactionItems: TransactionItem[] = cart.map((cartItem) => ({
       id: cartItem.product.id,
       name: cartItem.product.name,
@@ -149,7 +129,7 @@ export function CashierProvider({ children }: CashierProviderProps) {
     };
 
     setLastTransaction(newTransaction);
-    setCart([]); // Kosongkan keranjang setelah checkout sukses
+    setCart([]);
     return newTransaction;
   }
 
@@ -157,13 +137,6 @@ export function CashierProvider({ children }: CashierProviderProps) {
     setLastTransaction(null);
   }
 
-  // ==========================================
-  // FUNGSI MANAJEMEN INVENTORY & MENU
-  // ==========================================
-
-  /**
-   * Menambahkan menu produk baru ke inventory
-   */
   function addProduct(newProductData: Omit<Product, 'id'>): void {
     setProducts((currentProducts) => {
       const nextId =
@@ -180,15 +153,11 @@ export function CashierProvider({ children }: CashierProviderProps) {
     });
   }
 
-  /**
-   * Mengubah detail produk (nama, harga, kategori, stok, deskripsi)
-   */
   function updateProduct(updatedProduct: Product): void {
     setProducts((currentProducts) =>
       currentProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
     );
 
-    // Sinkronkan juga pada produk di keranjang jika ada
     setCart((currentCart) =>
       currentCart.map((item) =>
         item.product.id === updatedProduct.id
@@ -202,22 +171,15 @@ export function CashierProvider({ children }: CashierProviderProps) {
     );
   }
 
-  /**
-   * Menghapus produk dari inventory
-   */
   function deleteProduct(productId: number): void {
     setProducts((currentProducts) =>
       currentProducts.filter((p) => p.id !== productId)
     );
-    // Hapus juga dari keranjang jika sedang dimasukkan
     setCart((currentCart) =>
       currentCart.filter((item) => item.product.id !== productId)
     );
   }
 
-  /**
-   * Menyesuaikan stok produk secara cepat (+ atau -)
-   */
   function adjustStock(productId: number, delta: number): void {
     setProducts((currentProducts) =>
       currentProducts.map((p) => {
@@ -230,10 +192,6 @@ export function CashierProvider({ children }: CashierProviderProps) {
     );
   }
 
-  /**
-   * Menyinkronkan data produk dari Fake Store API ke dalam state global products
-   * agar tampil baik di Katalog Kasir maupun di halaman Inventory
-   */
   const syncApiProducts = useCallback((apiProducts: FakeStoreProduct[]): void => {
     setProducts((currentProducts) => {
       const mappedApiProducts: Product[] = apiProducts.map((apiItem) => {

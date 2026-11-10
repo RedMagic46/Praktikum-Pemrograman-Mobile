@@ -7,7 +7,6 @@ export const inventoryStyles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Stats Card Header
   statsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -40,7 +39,6 @@ export const inventoryStyles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Search & Add Bar
   toolbar: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -81,7 +79,6 @@ export const inventoryStyles = StyleSheet.create({
     fontSize: 13,
   },
 
-  // List of items
   listContent: {
     padding: 16,
     paddingBottom: 30,
@@ -130,7 +127,6 @@ export const inventoryStyles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Card Controls Row
   cardControlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -192,7 +188,6 @@ export const inventoryStyles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.55)',

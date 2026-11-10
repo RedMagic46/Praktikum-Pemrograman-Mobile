@@ -35,33 +35,19 @@ export default function CashierCatalogScreen() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiRequestVersion, setApiRequestVersion] = useState(0);
 
-  // Membaca parameter rute jika ada
   const params = useLocalSearchParams<{ category?: ProductCategory }>();
 
-  // State pencarian dan filter kategori
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>(
     (params.category as ProductCategory) || 'Semua'
   );
 
-  // Sinkronisasi jika parameter rute berubah
   useEffect(() => {
     if (params.category && params.category !== selectedCategory) {
       setSelectedCategory(params.category);
     }
   }, [params.category, selectedCategory]);
 
-  /**
-   * ============================================================================
-   * IMPLEMENTASI MODUL 3 (KRITERIA 2): PRE-BUILT ASYNC FUNCTION (FETCH & JSON)
-   * ============================================================================
-   * Memanggil fungsi asynchronous `fetchFakeStoreProducts()` yang di dalamnya
-   * mengeksekusi Pre-built Async Function:
-   * 1. `fetch()`: Mengambil data eksternal dari API endpoint.
-   * 2. `response.json()`: Melakukan parsing stream data response menjadi JSON.
-   * Dilengkapi penanganan async loading (`setApiLoading`) dan error (`setApiError`).
-   * ============================================================================
-   */
   useEffect(() => {
     let active = true;
 
@@ -104,32 +90,20 @@ export default function CashierCatalogScreen() {
     return filterProducts(products, selectedCategory, searchQuery);
   }, [products, selectedCategory, searchQuery]);
 
-  /**
-   * Mengubah kategori aktif dan memperbarui parameter rute menggunakan router.setParams()
-   */
   function handleSelectCategory(categoryName: ProductCategory): void {
     setSelectedCategory(categoryName);
-    // Penerapan router.setParams(): Memperbarui parameter query URL/rute secara dinamis
     router.setParams({ category: categoryName });
   }
 
-  // Perhitungan total di keranjang untuk floating bar
   const totalCartItems: number = calculateTotalItems(cart);
   const cartSubtotal: number = calculateSubtotal(cart);
 
-
-  /**
-   * Custom function untuk me-render setiap kartu produk dalam FlatList
-   * Menerapkan perpaduan External Styles dan Inline Styles dinamis
-   */
   function renderProductItem({ item }: { item: Product }) {
-    // Mengecek apakah stok menipis (dibawah atau sama dengan 12)
     const isApiProduct = Boolean(item.external);
     const isLowStock = !isApiProduct && item.stock <= 12;
 
     return (
       <View style={posStyles.productCard}>
-        {/* Box Icon Produk */}
         <View style={posStyles.productIconBox}>
           {item.external ? (
             <Image
@@ -143,7 +117,6 @@ export default function CashierCatalogScreen() {
           )}
         </View>
 
-        {/* Informasi Detail Produk */}
         <View style={posStyles.productDetails}>
           <Text style={posStyles.productCategoryTag}>
             [{item.external ? `Fake Store · ${item.external.category}` : item.category}]

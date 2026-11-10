@@ -17,7 +17,6 @@ import { COLORS } from '../styles/posStyles';
 export default function ReceiptScreen() {
   const { lastTransaction, resetTransaction } = useCashier();
 
-  // Jika tidak ada transaksi terakhir, arahkan kembali ke katalog
   if (!lastTransaction) {
     return (
       <SafeAreaView
@@ -52,11 +51,6 @@ export default function ReceiptScreen() {
     );
   }
 
-  /**
-   * Menangani transaksi baru
-   * Penerapan router.replace(): Mengganti rute struk saat ini kembali ke katalog ('/')
-   * dan membersihkan riwayat struk dari stack agar transaksi sebelumnya tidak dapat dibuka kembali
-   */
   function handleNewTransaction(): void {
     resetTransaction();
     router.replace('/');
@@ -75,7 +69,6 @@ export default function ReceiptScreen() {
         contentContainerStyle={receiptStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Banner Sukses Transaksi */}
         <View style={receiptStyles.successBanner}>
           <Ionicons
             name="checkmark-circle"
@@ -87,9 +80,7 @@ export default function ReceiptScreen() {
           </Text>
         </View>
 
-        {/* Kertas Struk Thermal KasirKu */}
         <View style={receiptStyles.receiptPaper}>
-          {/* Header Toko */}
           <View style={receiptStyles.storeHeader}>
             <View style={receiptStyles.storeLogoBox}>
               <Ionicons name="storefront" size={24} color={COLORS.primary} />
@@ -103,10 +94,8 @@ export default function ReceiptScreen() {
             </Text>
           </View>
 
-          {/* Garis Putus-putus */}
           <View style={receiptStyles.dashedLine} />
 
-          {/* Info Transaksi */}
           <View style={receiptStyles.metaRow}>
             <Text style={receiptStyles.metaLabel}>No. Faktur</Text>
             <Text style={receiptStyles.metaValue}>
@@ -130,10 +119,8 @@ export default function ReceiptScreen() {
             </Text>
           </View>
 
-          {/* Garis Putus-putus */}
           <View style={receiptStyles.dashedLine} />
 
-          {/* Daftar Item Belanja Menggunakan .map() Loop */}
           {lastTransaction.items.map((item, index) => (
             <View key={item.id.toString() + '-' + index} style={receiptStyles.itemRow}>
               <View style={{ flex: 1, paddingRight: 8 }}>
@@ -148,10 +135,8 @@ export default function ReceiptScreen() {
             </View>
           ))}
 
-          {/* Garis Putus-putus */}
           <View style={receiptStyles.dashedLine} />
 
-          {/* Rincian Total */}
           <View style={receiptStyles.summaryRow}>
             <Text style={receiptStyles.summaryLabel}>Subtotal</Text>
             <Text style={receiptStyles.summaryValue}>
@@ -195,7 +180,6 @@ export default function ReceiptScreen() {
             </>
           )}
 
-          {/* Footer Struk */}
           <View style={receiptStyles.dashedLine} />
 
           <View style={receiptStyles.footerSection}>
@@ -213,7 +197,6 @@ export default function ReceiptScreen() {
           </View>
         </View>
 
-        {/* Tombol Aksi Kasir */}
         <View style={receiptStyles.actionGroup}>
           <TouchableOpacity
             style={receiptStyles.newTransactionBtn}

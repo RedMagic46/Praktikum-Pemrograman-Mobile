@@ -1,30 +1,30 @@
 import { StyleSheet, Platform } from 'react-native';
 
 export const COLORS = {
-  primary: '#059669', // Emerald 600 - Brand KasirKu
+  primary: '#059669',
   primaryDark: '#047857',
   primaryLight: '#D1FAE5',
   primaryMuted: '#ECFDF5',
   
-  secondary: '#0284C7', // Sky Blue
+  secondary: '#0284C7',
   secondaryLight: '#E0F2FE',
   
-  accent: '#F59E0B', // Amber
+  accent: '#F59E0B',
   accentLight: '#FEF3C7',
   
-  danger: '#EF4444', // Red
+  danger: '#EF4444',
   dangerLight: '#FEE2E2',
   
-  background: '#F8FAFC', // Slate 50
+  background: '#F8FAFC',
   surface: '#FFFFFF',
   surfaceSubtle: '#F1F5F9',
   
-  border: '#E2E8F0', // Slate 200
+  border: '#E2E8F0',
   borderDark: '#CBD5E1',
   
-  textPrimary: '#0F172A', // Slate 900
-  textSecondary: '#475569', // Slate 600
-  textMuted: '#94A3B8', // Slate 400
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
   textLight: '#FFFFFF',
   
   cardShadow: Platform.select({
@@ -70,7 +70,6 @@ export const posStyles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   
-  // Header section
   header: {
     backgroundColor: COLORS.surface,
     paddingHorizontal: 20,
@@ -132,7 +131,6 @@ export const posStyles = StyleSheet.create({
     color: COLORS.primaryDark,
   },
   
-  // Search bar
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,7 +154,6 @@ export const posStyles = StyleSheet.create({
     padding: 4,
   },
   
-  // Categories horizontal list
   categorySection: {
     backgroundColor: COLORS.surface,
     paddingVertical: 12,
@@ -192,7 +189,6 @@ export const posStyles = StyleSheet.create({
     color: COLORS.textLight,
   },
   
-  // Product List
   catalogHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -213,10 +209,9 @@ export const posStyles = StyleSheet.create({
   },
   productListContent: {
     padding: 16,
-    paddingBottom: 110, // Ruang untuk floating cart
+    paddingBottom: 110,
   },
   
-  // Product Card
   productCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,
@@ -281,7 +276,6 @@ export const posStyles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Add to cart button
   addButton: {
     backgroundColor: COLORS.primary,
     width: 38,
@@ -292,7 +286,6 @@ export const posStyles = StyleSheet.create({
     marginLeft: 12,
   },
   
-  // Empty State
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -311,7 +304,6 @@ export const posStyles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Floating Cart Bar
   floatingCartBar: {
     position: 'absolute',
     bottom: 20,

@@ -16,7 +16,6 @@ export default function EditMenuScreen({ route, navigation, updateProduct, delet
   const [price, setPrice] = useState(product?.price !== undefined ? product.price.toString() : '');
   const [error, setError] = useState('');
 
-  // Hook useEffect: Menyinkronkan form input secara reaktif ketika data product dari parameter rute berubah
   useEffect(() => {
     if (product) {
       setName(product.name || '');

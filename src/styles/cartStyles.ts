@@ -7,7 +7,6 @@ export const cartStyles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   
-  // Header Info
   headerSummary: {
     backgroundColor: COLORS.surface,
     paddingHorizontal: 20,
@@ -29,7 +28,6 @@ export const cartStyles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Item List
   listContent: {
     padding: 16,
     paddingBottom: 24,
@@ -75,7 +73,6 @@ export const cartStyles = StyleSheet.create({
     marginTop: 2,
   },
   
-  // Quantity controls
   qtyControlRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -102,7 +99,6 @@ export const cartStyles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Checkout Section
   checkoutContainer: {
     backgroundColor: COLORS.surface,
     borderTopLeftRadius: 24,
@@ -137,7 +133,6 @@ export const cartStyles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Payment Method Chips
   paymentMethodRow: {
     flexDirection: 'row',
     gap: 8,
@@ -169,7 +164,6 @@ export const cartStyles = StyleSheet.create({
     color: COLORS.primaryDark,
   },
 
-  // Quick Cash Chips
   quickCashRow: {
     flexDirection: 'row',
     gap: 8,
@@ -190,7 +184,6 @@ export const cartStyles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 
-  // Cash Input Box
   cashInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,7 +208,6 @@ export const cartStyles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
 
-  // Bill breakdown
   billRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -270,7 +262,6 @@ export const cartStyles = StyleSheet.create({
     color: COLORS.secondary,
   },
 
-  // Submit button
   payButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 14,

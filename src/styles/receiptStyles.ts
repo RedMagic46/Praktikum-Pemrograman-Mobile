@@ -12,7 +12,6 @@ export const receiptStyles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Success indicator badge
   successBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -31,7 +30,6 @@ export const receiptStyles = StyleSheet.create({
     color: COLORS.primaryDark,
   },
 
-  // Thermal Paper Container
   receiptPaper: {
     width: '100%',
     backgroundColor: '#FFFFFF',
@@ -58,7 +56,6 @@ export const receiptStyles = StyleSheet.create({
     }),
   },
 
-  // Store Header
   storeHeader: {
     alignItems: 'center',
     marginBottom: 16,
@@ -90,7 +87,6 @@ export const receiptStyles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Dashed or dotted divider
   dashedLine: {
     borderBottomWidth: 1,
     borderBottomColor: '#CBD5E1',
@@ -98,7 +94,6 @@ export const receiptStyles = StyleSheet.create({
     marginVertical: 14,
   },
 
-  // Meta Info Table
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -114,7 +109,6 @@ export const receiptStyles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
 
-  // Item List
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -137,7 +131,6 @@ export const receiptStyles = StyleSheet.create({
     textAlign: 'right',
   },
 
-  // Calculation summary
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -168,7 +161,6 @@ export const receiptStyles = StyleSheet.create({
     color: COLORS.primary,
   },
 
-  // Receipt Footer
   footerSection: {
     alignItems: 'center',
     marginTop: 14,
@@ -203,7 +195,6 @@ export const receiptStyles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Bottom action buttons
   actionGroup: {
     width: '100%',
     marginTop: 24,

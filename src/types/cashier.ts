@@ -1,4 +1,3 @@
-// Definisi tipe dan interface TypeScript untuk KasirKu (Sesuai Modul 1)
 
 export type ProductCategory = 'Semua' | 'Makanan' | 'Minuman' | 'Snack' | 'Paket';
 
@@ -11,7 +10,7 @@ export interface Product {
   category: ProductCategory;
   stock: number;
   description: string;
-  iconName: string; // Nama icon dari Ionicons untuk representasi visual
+  iconName: string;
   external?: {
     category: string;
     image: string;

@@ -1,6 +1,5 @@
 import { Product, CategoryItem } from '../types/cashier';
 
-// Array of Objects untuk kategori menu kasir
 export const CATEGORIES: CategoryItem[] = [
   { id: '1', name: 'Semua', icon: 'apps-outline' },
   { id: '2', name: 'Makanan', icon: 'restaurant-outline' },
@@ -9,7 +8,6 @@ export const CATEGORIES: CategoryItem[] = [
   { id: '5', name: 'Paket', icon: 'sparkles-outline' },
 ];
 
-// Array of Objects untuk katalog produk KasirKu
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 1,

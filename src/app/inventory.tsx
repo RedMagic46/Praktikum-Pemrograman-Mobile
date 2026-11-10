@@ -27,10 +27,6 @@ export default function InventoryScreen() {
   const { products, addProduct, updateProduct, deleteProduct, adjustStock, syncApiProducts } =
     useCashier();
 
-  /**
-   * Helper navigasi kembali dengan validasi riwayat stack
-   * Penerapan router.canGoBack() dan router.back()
-   */
   function handleGoBack(): void {
     if (router.canGoBack()) {
       router.back();
@@ -39,30 +35,24 @@ export default function InventoryScreen() {
     }
   }
 
-  // Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('Semua');
 
-  // Modal Form states
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Form Fields
   const [formName, setFormName] = useState<string>('');
   const [formPrice, setFormPrice] = useState<string>('');
   const [formStock, setFormStock] = useState<string>('');
   const [formCategory, setFormCategory] = useState<ProductCategory>('Makanan');
   const [formDescription, setFormDescription] = useState<string>('');
 
-  // Perhitungan Statistik Inventory
   const totalMenuCount: number = products.length;
   const totalPhysicalStock: number = products.reduce((sum, p) => sum + p.stock, 0);
   const lowStockCount: number = products.filter((p) => p.stock < 15).length;
 
-  // State hasil filter produk inventory
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
 
-  // Hook useEffect: Pastikan data dari Fake Store API juga ter-load jika halaman Inventory dibuka langsung
   useEffect(() => {
     const hasExternalProducts = products.some((p) => Boolean(p.external));
     if (!hasExternalProducts) {
@@ -71,17 +61,14 @@ export default function InventoryScreen() {
           syncApiProducts(fetchedProducts);
         })
         .catch(() => {
-          // Tetap tampilkan produk lokal jika gagal memuat API
         });
     }
   }, [products, syncApiProducts]);
 
-  // Hook useEffect: Update daftar produk inventory berdasarkan search query & kategori
   useEffect(() => {
     setFilteredProducts(filterProducts(products, selectedCategory, searchQuery));
   }, [products, selectedCategory, searchQuery]);
 
-  // Hook useEffect: Sinkronisasi data form modal secara reaktif saat target editingProduct berubah
   useEffect(() => {
     if (editingProduct) {
       setFormName(editingProduct.name);
@@ -98,25 +85,16 @@ export default function InventoryScreen() {
     }
   }, [editingProduct]);
 
-  /**
-   * Buka form untuk menambah menu baru
-   */
   function handleOpenAddModal(): void {
     setEditingProduct(null);
     setModalVisible(true);
   }
 
-  /**
-   * Buka form untuk mengedit produk yang sudah ada
-   */
   function handleOpenEditModal(product: Product): void {
     setEditingProduct(product);
     setModalVisible(true);
   }
 
-  /**
-   * Menyimpan data produk (Tambah atau Edit)
-   */
   function handleSaveProduct(): void {
     if (!formName.trim()) {
       Alert.alert('Data Belum Lengkap', 'Nama produk wajib diisi.');
@@ -132,7 +110,6 @@ export default function InventoryScreen() {
     }
 
     if (editingProduct) {
-      // Mode Edit
       updateProduct({
         ...editingProduct,
         name: formName.trim(),
@@ -143,7 +120,6 @@ export default function InventoryScreen() {
       });
       Alert.alert('Sukses', `Menu "${formName}" berhasil diperbarui.`);
     } else {
-      // Mode Tambah
       addProduct({
         name: formName.trim(),
         price: priceNum,
@@ -165,9 +141,6 @@ export default function InventoryScreen() {
     setModalVisible(false);
   }
 
-  /**
-   * Konfirmasi sebelum menghapus produk
-   */
   function confirmDeleteProduct(product: Product): void {
     Alert.alert(
       'Hapus Menu',
@@ -183,9 +156,6 @@ export default function InventoryScreen() {
     );
   }
 
-  /**
-   * Render item produk dalam inventory
-   */
   function renderInventoryItem({ item }: { item: Product }) {
     const isCritical = item.stock <= 10;
 

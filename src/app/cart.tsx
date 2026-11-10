@@ -30,21 +30,17 @@ import { processPaymentTransaction } from '../services/paymentService';
 export default function CartCheckoutScreen() {
   const { cart, updateQuantity, clearCart, completeCheckout } = useCashier();
 
-  // Membaca parameter rute jika ada
   const params = useLocalSearchParams<{ method?: PaymentMethod }>();
 
-  // State metode pembayaran & input nominal tunai
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     params.method || 'TUNAI'
   );
   const [cashInput, setCashInput] = useState<string>('');
 
-  // State untuk melacak proses asynchronous transaksi kasir (Kriteria 2 Modul 3)
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  // Perhitungan rincian pembayaran
   const subtotal: number = calculateSubtotal(cart);
-  const tax: number = calculateTax(subtotal, 0.11); // PPN 11%
+  const tax: number = calculateTax(subtotal, 0.11);
   const grandTotal: number = calculateGrandTotal(subtotal, tax);
 
   const cashPaidAmount: number =
@@ -55,18 +51,12 @@ export default function CartCheckoutScreen() {
   const changeAmount: number = calculateChange(cashPaidAmount, grandTotal);
   const isPaymentValid: boolean = cart.length > 0;
 
-  // Hook useEffect: Menyesuaikan input nominal secara otomatis saat metode pembayaran atau grand total berubah
   useEffect(() => {
     if (paymentMethod !== 'TUNAI') {
-      // Pembayaran non-tunai (QRIS / DEBIT) selalu otomatis terisi sebesar total tagihan (uang pas)
       setCashInput(grandTotal > 0 ? grandTotal.toString() : '');
     }
   }, [paymentMethod, grandTotal]);
 
-  /**
-   * Helper navigasi kembali dengan validasi riwayat stack
-   * Penerapan router.canGoBack() dan router.back()
-   */
   function handleGoBack(): void {
     if (router.canGoBack()) {
       router.back();
@@ -75,52 +65,30 @@ export default function CartCheckoutScreen() {
     }
   }
 
-  /**
-   * Menavigasi untuk menambah menu lain
-   * Penerapan router.push()
-   */
   function handleAddMoreItems(): void {
     router.push('/');
   }
 
-  /**
-   * Memilih metode pembayaran dan memperbarui param rute secara dinamis
-   * Penerapan router.setParams()
-   */
   function handleSelectPaymentMethod(method: PaymentMethod): void {
     setPaymentMethod(method);
     router.setParams({ method });
   }
 
-  /**
-   * ============================================================================
-   * IMPLEMENTASI MODUL 3 (KRITERIA 2): MEMANGGIL PROMISE DENGAN .then(), .catch(), .finally()
-   * ============================================================================
-   * Menangani proses checkout kasir menggunakan metode chaining Promise:
-   * - `.then()`: Menangkap hasil `resolve(result)` saat pembayaran valid & berhasil.
-   * - `.catch()`: Menangkap alasan `reject(error)` saat validasi pembayaran gagal (misal uang kurang).
-   * - `.finally()`: Menonaktifkan indikator loading setelah proses asynchronous selesai.
-   * ============================================================================
-   */
   function handleProcessCheckout(): void {
     if (cart.length === 0) {
       Alert.alert('Keranjang Kosong', 'Silakan pilih menu terlebih dahulu sebelum bayar.');
       return;
     }
 
-    // 1. Mengaktifkan status loading asynchronous
     setIsProcessing(true);
 
-    // 2. Memanggil fungsi Promise processPaymentTransaction() menggunakan .then(), .catch(), dan .finally()
     processPaymentTransaction(paymentMethod, cashPaidAmount, grandTotal)
       .then((result) => {
-        // 3. Callback .then() dijalankan ketika Promise berhasil di-resolve()
         completeCheckout(paymentMethod, cashPaidAmount);
         Alert.alert('Pembayaran Berhasil', result.message);
         router.replace('/receipt');
       })
       .catch((error: unknown) => {
-        // 4. Callback .catch() dijalankan ketika Promise ditolak melalui reject()
         const message =
           error instanceof Error
             ? error.message
@@ -128,14 +96,10 @@ export default function CartCheckoutScreen() {
         Alert.alert('Transaksi Ditolak', message);
       })
       .finally(() => {
-        // 5. Callback .finally() selalu dijalankan setelah resolve() maupun reject() selesai
         setIsProcessing(false);
       });
   }
 
-  /**
-   * Mengatur uang cepat dengan nominal preset
-   */
   function setQuickCash(amount: number): void {
     setCashInput(amount.toString());
   }
@@ -149,9 +113,6 @@ export default function CartCheckoutScreen() {
     router.replace('/');
   }
 
-  /**
-   * Custom function me-render item keranjang pada FlatList
-   */
   function renderCartItem({ item }: { item: CartItem }) {
     const itemSubtotal = item.product.price * item.quantity;
 
@@ -184,7 +145,6 @@ export default function CartCheckoutScreen() {
           </Text>
         </View>
 
-        {/* Kontrol Kuantitas (+ dan -) */}
         <View style={cartStyles.qtyControlRow}>
           <TouchableOpacity
             style={cartStyles.qtyButton}
@@ -242,7 +202,6 @@ export default function CartCheckoutScreen() {
         >
           Belum ada item pesanan yang dipilih. Kembali ke katalog untuk menambahkan menu.
         </Text>
-        {/* Penerapan router.canGoBack() & router.back() pada tombol kembali */}
         <TouchableOpacity
           style={[
             cartStyles.payButton,
@@ -262,13 +221,11 @@ export default function CartCheckoutScreen() {
       style={cartStyles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Header Info Keranjang */}
       <View style={cartStyles.headerSummary}>
         <View>
           <Text style={cartStyles.headerSummaryTitle}>
             Pesanan Pelanggan ({cart.length} Jenis Menu)
           </Text>
-          {/* Penerapan router.push() untuk menambah menu dari katalog */}
           <TouchableOpacity
             onPress={handleAddMoreItems}
             style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 4 }}
@@ -287,7 +244,6 @@ export default function CartCheckoutScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* FlatList Item Belanja Kasir */}
         <FlatList
           data={cart}
           keyExtractor={(item) => item.product.id.toString()}
@@ -296,11 +252,9 @@ export default function CartCheckoutScreen() {
           contentContainerStyle={cartStyles.listContent}
         />
 
-        {/* Panel Form Pembayaran Kasir */}
         <View style={cartStyles.checkoutContainer}>
           <Text style={cartStyles.sectionTitle}>Pilih Metode Pembayaran</Text>
 
-          {/* Tombol Opsi Metode Bayar */}
           <View style={cartStyles.paymentMethodRow}>
             {(['TUNAI', 'QRIS', 'DEBIT'] as PaymentMethod[]).map((method) => {
               const isSelected = paymentMethod === method;
@@ -310,10 +264,8 @@ export default function CartCheckoutScreen() {
                   style={[
                     cartStyles.paymentChip,
                     isSelected && cartStyles.paymentChipActive,
-                    // Inline Style dynamic border
                     { borderColor: isSelected ? COLORS.primary : COLORS.border },
                   ]}
-                  // Penerapan router.setParams() saat memilih metode bayar
                   onPress={() => handleSelectPaymentMethod(method)}
                 >
                   <Ionicons
@@ -340,12 +292,10 @@ export default function CartCheckoutScreen() {
             })}
           </View>
 
-          {/* Opsi Tunai (Input Cash & Shortcut Cepat) */}
           {paymentMethod === 'TUNAI' && (
             <View>
               <Text style={cartStyles.sectionTitle}>Nominal Diterima</Text>
 
-              {/* Shortcut Uang Cepat */}
               <View style={cartStyles.quickCashRow}>
                 <TouchableOpacity
                   style={cartStyles.quickCashChip}
@@ -380,7 +330,6 @@ export default function CartCheckoutScreen() {
             </View>
           )}
 
-          {/* Ringkasan Biaya Belanja */}
           <View style={cartStyles.billRow}>
             <Text style={cartStyles.billLabel}>Subtotal</Text>
             <Text style={cartStyles.billValue}>{formatCurrency(subtotal)}</Text>

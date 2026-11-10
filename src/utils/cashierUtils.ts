@@ -1,9 +1,5 @@
 import { CartItem, Product, ProductCategory } from '../types/cashier';
 
-/**
- * Format angka ke format mata uang Rupiah
- * Contoh: 15000 -> "Rp 15.000"
- */
 export function formatCurrency(amount: number): string {
   if (isNaN(amount) || amount === null || amount === undefined) {
     return 'Rp 0';
@@ -11,10 +7,6 @@ export function formatCurrency(amount: number): string {
   return 'Rp ' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-/**
- * Custom Function untuk menghitung subtotal keranjang belanja kasir
- * Menggunakan perulangan tradisional (for loop) sesuai materi Codelab & Modul 1
- */
 export function calculateSubtotal(cartItems: CartItem[]): number {
   let subtotal = 0;
   for (let i = 0; i < cartItems.length; i++) {
@@ -24,9 +16,6 @@ export function calculateSubtotal(cartItems: CartItem[]): number {
   return subtotal;
 }
 
-/**
- * Custom Function untuk menghitung total kuantitas item dalam keranjang
- */
 export function calculateTotalItems(cartItems: CartItem[]): number {
   let count = 0;
   for (let i = 0; i < cartItems.length; i++) {
@@ -35,23 +24,14 @@ export function calculateTotalItems(cartItems: CartItem[]): number {
   return count;
 }
 
-/**
- * Menghitung PPN 11% (atau persentase kustom)
- */
 export function calculateTax(subtotal: number, taxRate: number = 0.11): number {
   return Math.round(subtotal * taxRate);
 }
 
-/**
- * Menghitung Total Akhir (Subtotal + Pajak)
- */
 export function calculateGrandTotal(subtotal: number, tax: number): number {
   return subtotal + tax;
 }
 
-/**
- * Menghitung kembalian uang pelanggan
- */
 export function calculateChange(cashPaid: number, grandTotal: number): number {
   if (cashPaid <= grandTotal) {
     return 0;
@@ -59,9 +39,6 @@ export function calculateChange(cashPaid: number, grandTotal: number): number {
   return cashPaid - grandTotal;
 }
 
-/**
- * Custom function untuk filter produk berdasarkan kategori dan kata kunci pencarian
- */
 export function filterProducts(
   products: Product[],
   selectedCategory: ProductCategory,
@@ -81,9 +58,6 @@ export function filterProducts(
   });
 }
 
-/**
- * Membuat nomor faktur struk transaksi kasir secara otomatis
- */
 export function generateInvoiceNumber(): string {
   const date = new Date();
   const year = date.getFullYear().toString().slice(-2);
