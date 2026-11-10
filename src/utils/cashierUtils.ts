@@ -71,13 +71,10 @@ export function filterProducts(
 
   return products.filter((product) => {
     const matchCategory =
-      selectedCategory === 'Semua' ||
-      (!product.external && product.category === selectedCategory);
       selectedCategory === 'Semua' || product.category === selectedCategory;
     const matchSearch =
       product.name.toLowerCase().includes(query) ||
       product.description.toLowerCase().includes(query) ||
-      product.external?.category.toLowerCase().includes(query);
       Boolean(product.external?.category.toLowerCase().includes(query));
 
     return matchCategory && matchSearch;

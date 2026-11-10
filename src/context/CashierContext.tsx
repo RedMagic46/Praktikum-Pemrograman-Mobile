@@ -1,4 +1,3 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Product, CartItem, Transaction, PaymentMethod, TransactionItem } from '../types/cashier';
 import { INITIAL_PRODUCTS } from '../data/products';

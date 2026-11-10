@@ -24,7 +24,6 @@ import { inventoryStyles } from '../styles/inventoryStyles';
 import { COLORS } from '../styles/posStyles';
 
 export default function InventoryScreen() {
-  const { products, addProduct, updateProduct, deleteProduct, adjustStock } = useCashier();
   const { products, addProduct, updateProduct, deleteProduct, adjustStock, syncApiProducts } =
     useCashier();
 
@@ -194,11 +193,6 @@ export default function InventoryScreen() {
       <View style={inventoryStyles.inventoryCard}>
         <View style={inventoryStyles.cardTopRow}>
           <View style={inventoryStyles.iconBox}>
-            <Ionicons
-              name={item.iconName as any}
-              size={24}
-              color={COLORS.primary}
-            />
             {item.external ? (
               <Image
                 source={{ uri: item.external.image }}
@@ -216,7 +210,6 @@ export default function InventoryScreen() {
           </View>
 
           <View style={inventoryStyles.cardMainInfo}>
-            <Text style={inventoryStyles.cardCategory}>[{item.category}]</Text>
             <Text style={inventoryStyles.cardCategory}>
               [{item.external ? `Fake Store · ${item.external.category}` : item.category}]
             </Text>
