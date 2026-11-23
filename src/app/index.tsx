@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
+
   View,
   Text,
   TextInput,
@@ -13,6 +15,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
+import { useAuth } from '../context/AuthContext';
 import {
   FAKE_STORE_USD_TO_IDR,
   FakeStoreProduct,
@@ -30,6 +33,9 @@ import { posStyles, COLORS } from '../styles/posStyles';
 
 export default function CashierCatalogScreen() {
   const { products, cart, addToCart, syncApiProducts } = useCashier();
+  const { cashierName, cashierEmail, signOut, isSubmitting } = useAuth();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [isConfirmingSignOut, setIsConfirmingSignOut] = useState(false);
   const [apiProducts, setApiProducts] = useState<FakeStoreProduct[]>([]);
   const [apiLoading, setApiLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -222,10 +228,11 @@ export default function CashierCatalogScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View style={posStyles.badgeOnline}>
+            <TouchableOpacity style={posStyles.badgeOnline} onPress={() => setProfileModalVisible(true)} activeOpacity={0.8}>
               <View style={posStyles.badgeDot} />
-              <Text style={posStyles.badgeText}>Kasir 01</Text>
-            </View>
+              <Text style={posStyles.badgeText}>{cashierName}</Text>
+              <Ionicons name="chevron-down" size={12} color={COLORS.primaryDark} style={{ marginLeft: 3 }} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -392,6 +399,198 @@ export default function CashierCatalogScreen() {
           </TouchableOpacity>
         </View>
       )}
+      {/* Modal Profil Kasir & Sign Out (Supabase Auth) */}
+      <Modal
+        visible={profileModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setProfileModalVisible(false);
+          setIsConfirmingSignOut(false);
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: COLORS.surface,
+              borderRadius: 20,
+              padding: 24,
+              width: '100%',
+              maxWidth: 360,
+              borderWidth: 1,
+              borderColor: COLORS.border,
+            }}
+          >
+            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: COLORS.primaryLight,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name="person" size={28} color={COLORS.primary} />
+              </View>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: COLORS.textPrimary }}>
+                {cashierName}
+              </Text>
+              {cashierEmail ? (
+                <Text style={{ fontSize: 13, color: COLORS.textSecondary, marginTop: 2 }}>
+                  {cashierEmail}
+                </Text>
+              ) : null}
+            </View>
+
+            <View
+              style={{
+                backgroundColor: COLORS.surfaceSubtle,
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 20,
+                borderWidth: 1,
+                borderColor: COLORS.border,
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 12, color: COLORS.textMuted }}>Status Sesi</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary }} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.primaryDark }}>Aktif</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 12, color: COLORS.textMuted }}>Otorisasi</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.textPrimary }}>Supabase Auth</Text>
+              </View>
+            </View>
+
+            {isConfirmingSignOut ? (
+              <View
+                style={{
+                  backgroundColor: COLORS.dangerLight,
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 16,
+                  borderWidth: 1,
+                  borderColor: '#FCA5A5',
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.danger, marginBottom: 4 }}>
+                  Konfirmasi Keluar Sesi
+                </Text>
+                <Text style={{ fontSize: 12, color: COLORS.danger, marginBottom: 12 }}>
+                  Apakah Anda yakin ingin keluar dari akun kasir ini?
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      paddingVertical: 9,
+                      borderRadius: 8,
+                      backgroundColor: COLORS.surface,
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: COLORS.border,
+                    }}
+                    onPress={() => setIsConfirmingSignOut(false)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.textSecondary }}>Batal</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      paddingVertical: 9,
+                      borderRadius: 8,
+                      backgroundColor: COLORS.danger,
+                      alignItems: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
+                    disabled={isSubmitting}
+                    onPress={async () => {
+                      setIsConfirmingSignOut(false);
+                      setProfileModalVisible(false);
+                      await signOut();
+                      router.replace('/(auth)/login');
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color={COLORS.textLight} />
+                    ) : (
+                      <>
+                        <Ionicons name="log-out-outline" size={15} color={COLORS.textLight} />
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.textLight }}>Ya, Keluar</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    backgroundColor: COLORS.surfaceSubtle,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: COLORS.border,
+                  }}
+                  onPress={() => {
+                    setProfileModalVisible(false);
+                    setIsConfirmingSignOut(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.textSecondary }}>Tutup</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1.2,
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    backgroundColor: COLORS.danger,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                  disabled={isSubmitting}
+                  onPress={() => setIsConfirmingSignOut(true)}
+                  activeOpacity={0.8}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={COLORS.textLight} />
+                  ) : (
+                    <>
+                      <Ionicons name="log-out-outline" size={16} color={COLORS.textLight} />
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.textLight }}>Keluar</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

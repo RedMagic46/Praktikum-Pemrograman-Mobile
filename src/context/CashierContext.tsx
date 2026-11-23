@@ -19,7 +19,11 @@ interface CashierContextType {
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, delta: number) => void;
   clearCart: () => void;
-  completeCheckout: (paymentMethod: PaymentMethod, cashPaid: number) => Transaction;
+  completeCheckout: (
+    paymentMethod: PaymentMethod,
+    cashPaid: number,
+    cashierName?: string
+  ) => Transaction;
   resetTransaction: () => void;
   addProduct: (newProduct: Omit<Product, 'id'>) => void;
   updateProduct: (updatedProduct: Product) => void;
@@ -89,7 +93,11 @@ export function CashierProvider({ children }: CashierProviderProps) {
     setCart([]);
   }
 
-  function completeCheckout(paymentMethod: PaymentMethod, cashPaid: number): Transaction {
+  function completeCheckout(
+    paymentMethod: PaymentMethod,
+    cashPaid: number,
+    cashierName?: string
+  ): Transaction {
     const subtotal = calculateSubtotal(cart);
     const tax = calculateTax(subtotal);
     const grandTotal = calculateGrandTotal(subtotal, tax);
@@ -125,7 +133,7 @@ export function CashierProvider({ children }: CashierProviderProps) {
       paymentMethod,
       cashPaid,
       change,
-      cashierName: 'Ahmad (Kasir 01)',
+      cashierName: cashierName || 'Kasir 01',
     };
 
     setLastTransaction(newTransaction);

@@ -1,12 +1,32 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Stack, router } from 'expo-router';
+import React, { useEffect } from 'react';
+import { TouchableOpacity, View, ActivityIndicator, Text } from 'react-native';
+import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { CashierProvider } from '../context/CashierContext';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import { COLORS } from '../styles/posStyles';
 
-export default function RootLayout() {
+function RootNavigationLayout() {
+  const { session, cashierEmail, isLoading } = useAuth();
+  const segments = useSegments();
+
+  // Guard routing otomatis
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const isAuthenticated = Boolean(session || cashierEmail);
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Belum terautentikasi -> paksa ke halaman login
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Sudah login -> arahkan ke halaman utama katalog
+      router.replace('/');
+    }
+  }, [session, cashierEmail, segments, isLoading]);
+
   const handleBackNavigation = () => {
     if (router.canGoBack()) {
       router.back();
@@ -15,8 +35,33 @@ export default function RootLayout() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: COLORS.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text
+          style={{
+            marginTop: 14,
+            fontSize: 14,
+            fontWeight: '600',
+            color: COLORS.textSecondary,
+          }}
+        >
+          Memeriksa sesi kasir...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <CashierProvider>
+    <>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -34,6 +79,13 @@ export default function RootLayout() {
           },
         }}
       >
+        <Stack.Screen
+          name="(auth)"
+          options={{
+            headerShown: false,
+          }}
+        />
+
         <Stack.Screen
           name="index"
           options={{
@@ -84,7 +136,16 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-    </CashierProvider>
+    </>
   );
 }
 
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <CashierProvider>
+        <RootNavigationLayout />
+      </CashierProvider>
+    </AuthProvider>
+  );
+}

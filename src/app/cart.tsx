@@ -15,6 +15,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCashier } from '../context/CashierContext';
+import { useAuth } from '../context/AuthContext';
 import { CartItem, PaymentMethod } from '../types/cashier';
 import {
   formatCurrency,
@@ -29,6 +30,7 @@ import { processPaymentTransaction } from '../services/paymentService';
 
 export default function CartCheckoutScreen() {
   const { cart, updateQuantity, clearCart, completeCheckout } = useCashier();
+  const { cashierName } = useAuth();
 
   const params = useLocalSearchParams<{ method?: PaymentMethod }>();
 
@@ -84,7 +86,7 @@ export default function CartCheckoutScreen() {
 
     processPaymentTransaction(paymentMethod, cashPaidAmount, grandTotal)
       .then((result) => {
-        completeCheckout(paymentMethod, cashPaidAmount);
+        completeCheckout(paymentMethod, cashPaidAmount, cashierName);
         Alert.alert('Pembayaran Berhasil', result.message);
         router.replace('/receipt');
       })
@@ -273,8 +275,8 @@ export default function CartCheckoutScreen() {
                       method === 'TUNAI'
                         ? 'cash-outline'
                         : method === 'QRIS'
-                        ? 'qr-code-outline'
-                        : 'card-outline'
+                          ? 'qr-code-outline'
+                          : 'card-outline'
                     }
                     size={16}
                     color={isSelected ? COLORS.primaryDark : COLORS.textSecondary}
