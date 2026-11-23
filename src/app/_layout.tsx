@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from '../context/AuthContext';
 import { COLORS } from '../styles/posStyles';
 
 function RootNavigationLayout() {
-  const { session, cashierEmail, isLoading } = useAuth();
+  const { session, user, cashierEmail, isLoading } = useAuth();
   const segments = useSegments();
 
   // Guard routing otomatis
@@ -16,7 +16,7 @@ function RootNavigationLayout() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const isAuthenticated = Boolean(session || cashierEmail);
+    const isAuthenticated = Boolean(session || user || cashierEmail);
 
     if (!isAuthenticated && !inAuthGroup) {
       // Belum terautentikasi -> paksa ke halaman login
@@ -25,7 +25,7 @@ function RootNavigationLayout() {
       // Sudah login -> arahkan ke halaman utama katalog
       router.replace('/');
     }
-  }, [session, cashierEmail, segments, isLoading]);
+  }, [session, user, cashierEmail, segments, isLoading]);
 
   const handleBackNavigation = () => {
     if (router.canGoBack()) {
